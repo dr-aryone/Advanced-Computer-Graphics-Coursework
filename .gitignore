@@ -10,3 +10,12 @@
 *.lai
 *.la
 *.a
+
+# Build directories
+*/build/
+
+# Temp files
+*~
+
+# Zip files
+*.zip

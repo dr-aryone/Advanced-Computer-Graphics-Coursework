@@ -1,0 +1,10 @@
+for each patch
+	take undistributed for that patch
+		distribute that to each patch
+		distributed light is added to current radiosity
+		distributed light is stored in absorbed
+
+at the end for each patch
+	undistirbuted light = undistributed + abosrbed
+	absorbed light = 0;
+	
