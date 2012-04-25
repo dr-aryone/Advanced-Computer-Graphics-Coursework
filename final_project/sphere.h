@@ -19,10 +19,10 @@ public:
 
   // for ray tracing
   virtual bool intersect(const Ray &r, Hit &h) const;
-
+  bool liesWithin(Vec3f point) const;
+  
   // for OpenGL rendering & radiosity
   void addRasterizedFaces(Mesh *m, ArgParser *args);
-
 private:
 
   // REPRESENTATION

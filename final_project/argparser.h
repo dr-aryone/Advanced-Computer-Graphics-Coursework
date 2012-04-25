@@ -77,6 +77,14 @@ public:
 	num_photons_to_collect = atoi(argv[i]);
       } else if (!strcmp(argv[i],"-gather_indirect")) {
 	gather_indirect = true;
+      } else if (!strcmp(argv[i],"-elapse_time")) {
+	i++; assert (i < argc); 
+	elapse_time = (double)atof(argv[i]);
+	assert (elapse_time > 0);
+      } else if (!strcmp(argv[i],"-time_step")) {
+	i++; assert (i < argc); 
+	time_step = (double)atof(argv[i]);
+	assert (time_step > 0);
       } else {
 	printf ("whoops error with command line argument %d: '%s'\n",i,argv[i]);
 	assert(0);
@@ -100,7 +108,7 @@ public:
     sphere_horiz = 8;
     sphere_vert = 6;
     cylinder_ring_rasterization = 20; 
-
+    
     // RAYTRACING PARAMETERS
     num_bounces = 0;
     num_shadow_samples = 0;
@@ -108,6 +116,8 @@ public:
     num_glossy_samples = 1;
     ambient_light = Vec3f(0.1,0.1,0.1);
     intersect_backfacing = false;
+    elapse_time = 0;
+    time_step = 0.1;
     
     // PHOTON MAPPING PARAMETERS
     render_photons = true;
@@ -144,6 +154,8 @@ public:
   int num_glossy_samples;
   Vec3f ambient_light;
   bool intersect_backfacing;
+  double elapse_time;
+  double time_step;
 
   // PHOTON MAPPING PARAMETERS
   int num_photons_to_shoot;

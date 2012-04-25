@@ -8,12 +8,14 @@
 #include "hit.h"
 #include <iostream>
 
-#define INTERSECT_DEBUG 0
+// ====================================================================
+// ====================================================================
 
-// ====================================================================
-// ====================================================================
 double lesserPositiveOf(double a, double b) {
-  if (INTERSECT_DEBUG) std::cout << "LPO: " << a << " " << b << std::endl;
+  return (a>0 && a<b) ? a : (b>0 ? b : -1);
+}
+
+double lesserPositiveOfWithin(double a, double b) {
   return (a>0 && (a<b || b<0)) ? a : (b>0 ? b : -1);
 }
 
@@ -44,14 +46,12 @@ bool Sphere::intersect(const Ray &r, Hit &h) const {
   
   else if (discriminant == 0) {
     t = (-1)*b/(2*a);
-    if (INTERSECT_DEBUG) std::cout << "Found one hit: " << t << std::endl;
     if (t <= 0) return false;
   }
   else {
     double tplus  = ((-1)*b + discriminant)/(2*a),
 	   tminus = ((-1)*b - discriminant)/(2*a);
-    t = lesserPositiveOf(tplus, tminus);
-    if (INTERSECT_DEBUG) std::cout << "Found two hits: " << tplus << " " << tminus << "; lesser positive returns " << t << std::endl;
+    t = liesWithin(r.getOrigin()) ? lesserPositiveOfWithin(tplus, tminus) : lesserPositiveOf(tplus, tminus);
     if (t == -1) return false;
   }  
   
@@ -63,13 +63,18 @@ bool Sphere::intersect(const Ray &r, Hit &h) const {
   
   h.set(t, material, norm);
   return true;
-  
-  
-  
 } 
 
 // ====================================================================
 // ====================================================================
+
+bool Sphere::liesWithin(Vec3f point) const {
+  // Efectively, is the distance between the center and the point smaller than the radius?
+  // NOTE: Squared values are used because squareroots are highly inefficient.
+  Vec3f relative = point - center;
+  double distanceSquared = relative[0]*relative[0] + relative[1]*relative[1] + relative[2]*relative[2];
+  return distanceSquared < radius*radius;
+}
 
 // helper function to place a grid of points on the sphere
 Vec3f ComputeSpherePoint(double s, double t, const Vec3f center, double radius) {

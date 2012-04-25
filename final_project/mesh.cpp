@@ -17,7 +17,7 @@
 #include "ray.h"
 #include "hit.h"
 #include "camera.h"
-
+#include "argparser.h"
 
 // =======================================================================
 // DESTRUCTOR
@@ -42,7 +42,8 @@ Mesh::~Mesh() {
     removeFaceEdges(f);
     delete f;
   }
-  for (i = 0; i < primitives.size(); i++) { delete primitives[i]; }
+  for (i = 0; i < primitives.size(); i++)
+    for (unsigned int j = 0; j < primitives[i].size(); j++) { delete primitives[i][j]; }
   for (i = 0; i < materials.size(); i++) { delete materials[i]; }
   for (i = 0; i < vertices.size(); i++) { delete vertices[i]; }
   delete bbox;
@@ -63,8 +64,8 @@ Vertex* Mesh::addVertex(const Vec3f &position) {
   return vertices[index];
 }
 
-void Mesh::addPrimitive(Primitive* p) {
-  primitives.push_back(p);
+void Mesh::addPrimitive(Primitive* p, int t) {
+  primitives[t].push_back(p);
   p->addRasterizedFaces(this,args);
 }
 
@@ -131,10 +132,10 @@ void Mesh::removeFaceEdges(Face *f) {
   Vertex *c = ec->getStartVertex();
   Vertex *d = ed->getStartVertex();
   // remove elements from master lists
-  edges.erase(std::make_pair(a,b)); 
-  edges.erase(std::make_pair(b,c)); 
-  edges.erase(std::make_pair(c,d)); 
-  edges.erase(std::make_pair(d,a)); 
+  edges.erase(std::make_pair(a,b));
+  edges.erase(std::make_pair(b,c));
+  edges.erase(std::make_pair(c,d));
+  edges.erase(std::make_pair(d,a));
   // clean up memory
   delete ea;
   delete eb;
@@ -183,7 +184,9 @@ void Mesh::Load(const std::string &input_file, ArgParser *_args) {
   Material *active_material = NULL;
   camera = NULL;
   background_color = Vec3f(1,1,1);
- 
+  
+  std::string last_token;
+  
   while (objfile >> token) {
     if (token == "v") {
       double x,y,z;
@@ -209,14 +212,41 @@ void Mesh::Load(const std::string &input_file, ArgParser *_args) {
       addOriginalQuad(getVertex(a),getVertex(b),getVertex(c),getVertex(d),active_material);
     } else if (token == "s") {
       double x,y,z,r;
-      objfile >> x >> y >> z >> r;
       assert (active_material != NULL);
-      addPrimitive(new Sphere(Vec3f(x,y,z),r,active_material));
+      if (args->elapse_time > 0) {
+	double vx,vy,vz,ax,ay,az;
+	Vec3f pos = Vec3f(x,y,z);
+	Vec3f vel = Vec3f(vx,vy,vz);
+	Vec3f acc = Vec3f(ax,ay,az);
+	objfile >> x >> y >> z >> r >> vx >> vy >> vz >> ax >> ay >> az;
+	for (double currstep = 0; currstep < _args->elapse_time/_args->time_step; currstep++) {
+	  addPrimitive(new Sphere(pos,r,active_material), currstep);
+	  pos += vel;
+	  vel += acc;
+	}
+      } else {
+	objfile >> x >> y >> z >> r;
+	assert (active_material != NULL);
+	addPrimitive(new Sphere(Vec3f(x,y,z),r,active_material), 0);
+      }
     } else if (token == "r") {
       double x,y,z,h,r,r2;
-      objfile >> x >> y >> z >> h >> r >> r2;
       assert (active_material != NULL);
-      addPrimitive(new CylinderRing(Vec3f(x,y,z),h,r,r2,active_material));
+      if (args->elapse_time > 0) {
+	double vx,vy,vz,ax,ay,az;
+	Vec3f pos = Vec3f(x,y,z);
+	Vec3f vel = Vec3f(vx,vy,vz);
+	Vec3f acc = Vec3f(ax,ay,az);
+	objfile >> x >> y >> z >> h >> r >> r2 >> vx >> vy >> vz >> ax >> ay >> az;
+	for (double currstep = 0.0; currstep < args->elapse_time/args->time_step; currstep++) {
+	  addPrimitive(new CylinderRing(Vec3f(x,y,z),h,r,r2,active_material),currstep);
+	  pos += vel;
+	  vel += acc;
+	}
+      } else {
+	objfile >> x >> y >> z >> h >> r >> r2;
+	addPrimitive(new CylinderRing(Vec3f(x,y,z),h,r,r2,active_material),0);
+      }
     } else if (token == "background_color") {
       double r,g,b;
       objfile >> r >> g >> b;
@@ -275,9 +305,11 @@ void Mesh::Load(const std::string &input_file, ArgParser *_args) {
       materials.push_back(new Material(texture_file,diffuse,reflective,emitted,roughness, refractive, refractive_index, refractive_color));
       
     } else {
-      std::cout << "UNKNOWN TOKEN " << token << std::endl;
+      if (last_token == "s") std::cout << "ERROR: Motion Data in non-motion scene.\n";
+      else std::cout << "UNKNOWN TOKEN " << token << std::endl;
       exit(0);
     }
+    last_token = token;
   }
   std::cout << " mesh loaded: " << numFaces() << " faces and " << numEdges() << " edges." << std::endl;
 

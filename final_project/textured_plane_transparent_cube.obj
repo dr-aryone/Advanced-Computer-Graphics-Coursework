@@ -1,0 +1,62 @@
+material
+diffuse 0 0 0
+reflective 0 0 0
+emitted 20 20 20
+
+material
+texture_file green_mosaic.ppm
+reflective 0 0 0
+emitted 0 0 0
+
+material
+diffuse 0 0 0
+reflective 0.08 0.08 0.08
+roughness 0.2
+refractive 0.92 0.92 0.92 1.333
+emitted 0 0 0
+
+v -1 -1 -1
+v 1 -1 -1
+v -1 1 -1
+v 1 1 -1
+v -1 -1 1
+v 1 -1 1
+v -1 1 1
+v 1 1 1
+
+v -7 10 7
+v -7 10 3
+v -3 10 3
+v -3 10 7
+
+v -10.000000 -1.000000 -10.000000
+vt 0 1
+v -10.000000 -1.000000 10.000000
+vt 0 0
+v 10.000000 -1.000000 10.000000
+vt 1 0
+v 10.000000 -1.000000 -10.000000
+vt 1 1
+
+m 0
+f 9 10 11 12
+
+m 1
+f 13 14 15 16
+
+m 2
+f 6 8 7 5
+f 3 4 2 1
+f 7 8 4 3
+f 2 6 5 1
+f 5 7 3 1
+f 4 8 6 2
+
+background_color 0.7 0.8 0.9
+
+PerspectiveCamera {
+  camera_position    12.5773 13.8647 34.6736
+  point_of_interest  1.52343 1.85662 0.165424
+  up                 0 1 0
+  angle              0.349066
+}

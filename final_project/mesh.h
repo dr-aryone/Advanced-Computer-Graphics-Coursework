@@ -69,10 +69,12 @@ public:
 
   // =======================================
   // ACCESS THE PRIMITIVES (for ray tracing)
-  int numPrimitives() const { return primitives.size(); }
-  Primitive* getPrimitive(int i) const {
-    assert (i >= 0 && i < numPrimitives()); 
-    return primitives[i]; }
+  int numTimesteps() const { return primitives.size(); }
+  int numPrimitives() const { return primitives[0].size(); }
+  Primitive* getPrimitive(int i, int j) const {
+    assert (i >= 0 && i < numTimesteps());
+    assert (j >= 0 && j < numPrimitives());
+    return primitives[i][j]; }
   // ACCESS THE PRIMITIVES (for radiosity)
   int numRasterizedPrimitiveFaces() const { return rasterized_primitive_faces.size(); }
   Face* getRasterizedPrimitiveFace(int i) const {
@@ -113,7 +115,7 @@ private:
   Vertex* AddMidVertex(Vertex *a, Vertex *b, Vertex *c, Vertex *d);
   void addFace(Vertex *a, Vertex *b, Vertex *c, Vertex *d, Material *material, enum FACE_TYPE face_type);
   void removeFaceEdges(Face *f);
-  void addPrimitive(Primitive *p); 
+  void addPrimitive(Primitive *p, int t); 
 
   // ==============
   // REPRESENTATION
@@ -123,10 +125,12 @@ private:
   Vec3f background_color;
   Camera *camera;
  private:
-
+  double time;
+  double step;
+  
   // the bounding box of all rasterized faces in the scene
   BoundingBox *bbox; 
-
+  
   // the vertices & edges used by all quads (including rasterized primitives)
   std::vector<Vertex*> vertices;  
   edgeshashtype edges;
@@ -137,7 +141,7 @@ private:
   // the quads from the .obj file that have non-zero emission value
   std::vector<Face*> original_lights; 
   // all primitives (spheres, etc.)
-  std::vector<Primitive*> primitives;
+  std::vector<std::vector<Primitive*>> primitives;
   // the primitives converted to quads
   std::vector<Face*> rasterized_primitive_faces;
   // the quads from the .obj file after subdivision

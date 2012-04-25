@@ -25,7 +25,8 @@ emitted 0 0 0
 
 material
 diffuse 0 0 0 
-reflective 0.8 0.8 0.8
+reflective 0.1 0.1 0.1
+refractive 0.8 0.8 0.8 1.333
 emitted 0 0 0
 
 v -1 -1 -1

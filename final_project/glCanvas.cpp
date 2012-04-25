@@ -403,7 +403,12 @@ Vec3f GLCanvas::TraceRay(double i, double j) {
     double y = (j+b-args->height/2.0)/double(max_d)+0.5;
     Ray r = mesh->camera->generateRay(x,y);
     Hit hit = Hit();
-    color += raytracer->TraceRay(r,hit,args->num_bounces)/args->num_antialias_samples;
+    int num_timesteps = mesh->numTimesteps();
+    Vec3f tmpcolor = Vec3f(0,0,0);
+    for (int i = 0; i<num_timesteps; i++) {
+      tmpcolor += raytracer->TraceRay(r,hit,args->num_bounces)/args->num_antialias_samples;
+    }
+    color += tmpcolor/(double)num_timesteps;
   // add that ray for visualizatio;
     RayTree::AddMainSegment(r,0,hit.getT());
     sampleAA--;
