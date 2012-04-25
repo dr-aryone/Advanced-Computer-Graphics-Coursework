@@ -207,9 +207,15 @@ void GLCanvas::motion(int x, int y) {
   // Left button = rotation
   // (rotate camera around the up and horizontal vectors)
   if (mouseButton == GLUT_LEFT_BUTTON) {
-    mesh->camera->rotateCamera(0.005*(mouseX-x), 0.005*(mouseY-y));
-    mouseX = x;
-    mouseY = y;
+    if (controlPressed && altPressed) {
+      mesh->camera->truckCamera((mouseX-x)*0.5, (y-mouseY)*0.5);
+      mouseX = x;
+      mouseY = y;
+    } else {    
+      mesh->camera->rotateCamera(0.005*(mouseX-x), 0.005*(mouseY-y));
+      mouseX = x;
+      mouseY = y;
+    }
   }
   // Middle button = translation
   // (move camera perpendicular to the direction vector)
@@ -404,9 +410,12 @@ Vec3f GLCanvas::TraceRay(double i, double j) {
     Ray r = mesh->camera->generateRay(x,y);
     Hit hit = Hit();
     int num_timesteps = mesh->numTimesteps();
+    //std::cout << "num_timesteps: " << num_timesteps << std::endl;
     Vec3f tmpcolor = Vec3f(0,0,0);
-    for (int i = 0; i<num_timesteps; i++) {
-      tmpcolor += raytracer->TraceRay(r,hit,args->num_bounces)/args->num_antialias_samples;
+    
+    for (int t = 0; t<num_timesteps-1; t++) {
+      //std::cout << "t:" << t << std::endl;
+      tmpcolor += raytracer->TraceRay(r,hit,args->num_bounces,t)/args->num_antialias_samples;
     }
     color += tmpcolor/(double)num_timesteps;
   // add that ray for visualizatio;

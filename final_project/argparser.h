@@ -46,7 +46,6 @@ public:
       } else if (!strcmp(argv[i],"-cylinder_ring_rasterization")) {
 	i++; assert (i < argc); 
 	cylinder_ring_rasterization = atoi(argv[i]);
-
       } else if (!strcmp(argv[i],"-num_bounces")) {
 	i++; assert (i < argc); 
 	num_bounces = atoi(argv[i]);
@@ -77,10 +76,10 @@ public:
 	num_photons_to_collect = atoi(argv[i]);
       } else if (!strcmp(argv[i],"-gather_indirect")) {
 	gather_indirect = true;
-      } else if (!strcmp(argv[i],"-elapse_time")) {
+      } else if (!strcmp(argv[i],"-num_steps")) {
 	i++; assert (i < argc); 
-	elapse_time = (double)atof(argv[i]);
-	assert (elapse_time > 0);
+	num_steps = (double)atof(argv[i]);
+	assert (num_steps > 0);
       } else if (!strcmp(argv[i],"-time_step")) {
 	i++; assert (i < argc); 
 	time_step = (double)atof(argv[i]);
@@ -116,7 +115,7 @@ public:
     num_glossy_samples = 1;
     ambient_light = Vec3f(0.1,0.1,0.1);
     intersect_backfacing = false;
-    elapse_time = 0;
+    num_steps = 0;
     time_step = 0.1;
     
     // PHOTON MAPPING PARAMETERS
@@ -154,7 +153,7 @@ public:
   int num_glossy_samples;
   Vec3f ambient_light;
   bool intersect_backfacing;
-  double elapse_time;
+  int num_steps;
   double time_step;
 
   // PHOTON MAPPING PARAMETERS

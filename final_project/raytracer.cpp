@@ -57,11 +57,11 @@ bool RayTracer::CastRay(const Ray &ray, Hit &h, bool use_rasterized_patches, int
   return answer;
 }
 
-bool RayTracer::CastRayWithBackfacing(const Ray &ray, Hit &h, bool use_rasterized_patches) const {
+bool RayTracer::CastRayWithBackfacing(const Ray &ray, Hit &h, bool use_rasterized_patches, int timestep) const {
   
   bool ib_old = args->intersect_backfacing;
   args->intersect_backfacing = 1;
-  bool castResult = CastRay(ray, h, use_rasterized_patches);
+  bool castResult = CastRay(ray, h, use_rasterized_patches, timestep);
   args->intersect_backfacing = ib_old;
   
   return castResult;
@@ -69,12 +69,12 @@ bool RayTracer::CastRayWithBackfacing(const Ray &ray, Hit &h, bool use_rasterize
 
 // ===========================================================================
 // does the recursive (shadow rays & recursive rays) work
-Vec3f RayTracer::TraceRay(Ray &ray, Hit &hit, int bounce_count, double refractive_index, int timestep) const {
-  
+Vec3f RayTracer::TraceRay(Ray &ray, Hit &hit, int bounce_count, int timestep) const {
+  //std::cout << "casting at " << timestep << std::endl;
   // First cast a ray and see if we hit anything.
   hit = Hit();
-  bool intersect = CastRay(ray,hit,false);
-    
+  bool intersect = CastRay(ray,hit,false, timestep);
+  //if (intersect) std:: cout << "Hit at t=" << hit.getT() << std::endl;
   // if there is no intersection, simply return the background color
   if (intersect == false) {
     return Vec3f(srgb_to_linear(mesh->background_color.r()),
@@ -134,7 +134,7 @@ Vec3f RayTracer::TraceRay(Ray &ray, Hit &hit, int bounce_count, double refractiv
       Ray shadowRay = Ray(point-epsilonVec,dirToLightCentroid);
       int num_primitives = mesh->numPrimitives();
       for (int i = 0; i<num_primitives; i++) {
-	if (mesh->getPrimitive(i)->intersect(shadowRay,shadowHit)) shadowInt = true;
+	if (mesh->getPrimitive(timestep, i)->intersect(shadowRay,shadowHit)) shadowInt = true;
       }
       RayTree::AddShadowSegment(shadowRay,0,shadowHit.getT());
 
@@ -157,7 +157,7 @@ Vec3f RayTracer::TraceRay(Ray &ray, Hit &hit, int bounce_count, double refractiv
 	Ray shadowRay = Ray(point,dirToLightCentroid);
 	int num_primitives = mesh->numPrimitives();
 	for (int i = 0; i<num_primitives; i++) {
-	  if (mesh->getPrimitive(i)->intersect(shadowRay,shadowHit)) shadowInt = true;
+	  if (mesh->getPrimitive(timestep, i)->intersect(shadowRay,shadowHit)) shadowInt = true;
 	}
     // ===========================================
     // ASSIGNMENT:  ADD SHADOW & SOFT SHADOW LOGIC
@@ -212,7 +212,7 @@ Vec3f RayTracer::TraceRay(Ray &ray, Hit &hit, int bounce_count, double refractiv
     Vec3f tinystep = ray.pointAtParameter(hit.getT() + epsilon*3);
     
     Ray refractionRay = Ray(tinystep, T); //firstRefractionVector);
-    CastRayWithBackfacing(refractionRay, insideHit, false);
+    CastRay(refractionRay, insideHit, false, timestep);
     RayTree::AddTransmittedSegment(refractionRay,epsilon,insideHit.getT());
     
     

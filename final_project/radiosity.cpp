@@ -122,7 +122,7 @@ void Radiosity::ComputeFormFactors() {
 	  Vec3f gCent = g->computeCentroid();
 	  Ray R = Ray(fCent,gCent);
 	  Hit h = Hit();
-	  bool intersect = raytracer->CastRay(R,h,false);
+	  bool intersect = raytracer->CastRay(R,h,false,0);
 	  if(intersect && args->num_shadow_samples>0){
 	    if(h.getNormal().x()!=gNorm.x()||h.getNormal().y()!=gNorm.y()||h.getNormal().z()!=gNorm.z()){
 	      occluded=true;

@@ -65,8 +65,10 @@ Vertex* Mesh::addVertex(const Vec3f &position) {
 }
 
 void Mesh::addPrimitive(Primitive* p, int t) {
+  //std::cout << "Is " << t << " larger than " << primitives.size() << "?\n";
+  assert(t<(int)primitives.size());
   primitives[t].push_back(p);
-  p->addRasterizedFaces(this,args);
+  if (t == 0) p->addRasterizedFaces(this,args);
 }
 
 void Mesh::addFace(Vertex *a, Vertex *b, Vertex *c, Vertex *d, Material *material, enum FACE_TYPE face_type) {
@@ -175,7 +177,14 @@ void Mesh::Load(const std::string &input_file, ArgParser *_args) {
     std::cout << "ERROR! CANNOT OPEN " << input_file << std::endl;
     return;
   }
-
+  
+  // add spot for time zero primitives
+  primitives.push_back(std::vector<Primitive*>());
+  // add spot for primitives at each subsequent timestep
+  for (int i=0; i<args->num_steps; i++) {
+    primitives.push_back(std::vector<Primitive*>());
+  }
+  
   // extract the directory from the .obj filename, to use for texture files
   int last_slash = input_file.rfind("/");
   std::string directory = input_file.substr(0,last_slash+1);
@@ -213,16 +222,20 @@ void Mesh::Load(const std::string &input_file, ArgParser *_args) {
     } else if (token == "s") {
       double x,y,z,r;
       assert (active_material != NULL);
-      if (args->elapse_time > 0) {
+      if (args->num_steps > 0) {
 	double vx,vy,vz,ax,ay,az;
+	objfile >> x >> y >> z >> r >> vx >> vy >> vz >> ax >> ay >> az;
 	Vec3f pos = Vec3f(x,y,z);
 	Vec3f vel = Vec3f(vx,vy,vz);
 	Vec3f acc = Vec3f(ax,ay,az);
-	objfile >> x >> y >> z >> r >> vx >> vy >> vz >> ax >> ay >> az;
-	for (double currstep = 0; currstep < _args->elapse_time/_args->time_step; currstep++) {
-	  addPrimitive(new Sphere(pos,r,active_material), currstep);
-	  pos += vel;
-	  vel += acc;
+	
+	std::cout << "Initial pos: " << pos 
+	<< "\nInitial velocity: " << vel << "\nAcceleration: " << acc << std::endl;
+	for (int index = 0; index < args->num_steps; index++) {
+	  //std::cout << "Adding sphere centered at " << pos[0] << "," << pos[1] << "," << pos[2] << " at timestep " << currtime << ", index " << index << std::endl;
+	  addPrimitive(new Sphere(pos,r,active_material), index);
+	  pos += vel*args->time_step;
+	  vel += acc*args->time_step;
 	}
       } else {
 	objfile >> x >> y >> z >> r;
@@ -232,16 +245,16 @@ void Mesh::Load(const std::string &input_file, ArgParser *_args) {
     } else if (token == "r") {
       double x,y,z,h,r,r2;
       assert (active_material != NULL);
-      if (args->elapse_time > 0) {
+      if (args->num_steps > 0) {
 	double vx,vy,vz,ax,ay,az;
 	Vec3f pos = Vec3f(x,y,z);
 	Vec3f vel = Vec3f(vx,vy,vz);
 	Vec3f acc = Vec3f(ax,ay,az);
 	objfile >> x >> y >> z >> h >> r >> r2 >> vx >> vy >> vz >> ax >> ay >> az;
-	for (double currstep = 0.0; currstep < args->elapse_time/args->time_step; currstep++) {
-	  addPrimitive(new CylinderRing(Vec3f(x,y,z),h,r,r2,active_material),currstep);
-	  pos += vel;
-	  vel += acc;
+	for (int index = 0; index < args->num_steps; index++) {
+	  addPrimitive(new CylinderRing(Vec3f(x,y,z),h,r,r2,active_material),index);
+	  pos += vel*args->time_step;
+	  vel += acc*args->time_step;
 	}
       } else {
 	objfile >> x >> y >> z >> h >> r >> r2;
