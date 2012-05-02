@@ -27,8 +27,8 @@ bool Sphere::intersect(const Ray &r, Hit &h) const {
   // return true if the sphere was intersected, and update
   // the hit data structure to contain the value of t for the ray at
   // the intersection point, the material, and the normal
-  //return false;*/
   
+  //std::cout << "GOOD :: Testing intersection with sphere centered at " << center << "." << std::endl;
   
   Vec3f R0 = r.getOrigin(),
 	Rd = r.getDirection(),

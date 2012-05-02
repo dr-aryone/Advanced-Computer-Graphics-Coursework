@@ -68,6 +68,7 @@ void Mesh::addPrimitive(Primitive* p, int t) {
   //std::cout << "Is " << t << " larger than " << primitives.size() << "?\n";
   assert(t<(int)primitives.size());
   primitives[t].push_back(p);
+  // if timestep is 0, add this item to the initial rasterized mesh.
   if (t == 0) p->addRasterizedFaces(this,args);
 }
 

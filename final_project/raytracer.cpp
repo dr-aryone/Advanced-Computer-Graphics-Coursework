@@ -26,6 +26,8 @@ Vec3f epsilonVec = Vec3f(epsilon, epsilon, epsilon);
 // ===========================================================================
 // casts a single ray through the scene geometry and finds the closest hit
 bool RayTracer::CastRay(const Ray &ray, Hit &h, bool use_rasterized_patches, int timestep) const {
+  //std::cout << "GOOD :: Casting ray." << std::endl;
+  
   bool answer = false;
   h.set(INT_MAX, NULL, Vec3f(0,0,0));
   // intersect each of the quads
@@ -39,6 +41,7 @@ bool RayTracer::CastRay(const Ray &ray, Hit &h, bool use_rasterized_patches, int
   
   // intersect each of the primitives (either the patches, or the original primitives)
   if (use_rasterized_patches) {
+    //std::cout << "BAD :: Using rasterized patches." << std::endl;
     for (int i = 0; i < mesh->numRasterizedPrimitiveFaces(); i++) {
       Face *f = mesh->getRasterizedPrimitiveFace(i);
       htmp = h;
@@ -46,6 +49,7 @@ bool RayTracer::CastRay(const Ray &ray, Hit &h, bool use_rasterized_patches, int
       if (h.getT() > htmp.getT()) h = htmp;
     }
   } else {
+    //std::cout << "GOOD :: Inersecting spheres." << std::endl;
     int num_primitives = mesh->numPrimitives();
     for (int j = 0; j<num_primitives; j++) {
       htmp = h;
@@ -57,20 +61,10 @@ bool RayTracer::CastRay(const Ray &ray, Hit &h, bool use_rasterized_patches, int
   return answer;
 }
 
-bool RayTracer::CastRayWithBackfacing(const Ray &ray, Hit &h, bool use_rasterized_patches, int timestep) const {
-  
-  bool ib_old = args->intersect_backfacing;
-  args->intersect_backfacing = 1;
-  bool castResult = CastRay(ray, h, use_rasterized_patches, timestep);
-  args->intersect_backfacing = ib_old;
-  
-  return castResult;
-}
-
 // ===========================================================================
 // does the recursive (shadow rays & recursive rays) work
 Vec3f RayTracer::TraceRay(Ray &ray, Hit &hit, int bounce_count, int timestep) const {
-  //std::cout << "casting at " << timestep << std::endl;
+  //std::cout << "GOOD :: Tracing ray. Casting at " << timestep << std::endl;
   // First cast a ray and see if we hit anything.
   hit = Hit();
   bool intersect = CastRay(ray,hit,false, timestep);
